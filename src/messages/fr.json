@@ -1,9 +1,143 @@
 {
-  "HomePage": {
-    "title": "SharePay 🚀",
-    "subtitle": "L'infrastructure de paiement unifiée."
+  "Navigation": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "developers": "Développeurs",
+    "company": "Entreprise",
+    "menu_payments": "Paiements",
+    "menu_transfers": "Virements",
+    "menu_cards": "Cartes Virtuelles",
+    "menu_api": "Documentation API",
+    "menu_status": "État du système",
+    "menu_about": "À propos",
+    "menu_contact": "Contact",
+    "desc_payments": "Acceptez des paiements du monde entier.",
+    "desc_transfers": "Envoyez de l'argent vers n'importe quel compte.",
+    "desc_api": "Intégrez SharePay en quelques lignes de code.",
+    "desc_status": "Vérifiez la disponibilité de nos services.",
+    "desc_dashboard": "Suivez vos finances en temps réel.",
+    "desc_security": "Normes PCI-DSS et chiffrement."
   },
-  "Theme": {
-    "toggle": "Changer le thème"
+  "Landing": {
+    "heroTitle": "L'infrastructure de paiement pour l'Afrique",
+    "heroSubtitle": "Unifiez Mobile Money, Cartes Bancaires et Virements via une API unique. Conçu pour les développeurs, pensé pour la croissance.",
+    "ctaStart": "Ouvrir un compte gratuit",
+    "ctaDemo": "Contacter les ventes",
+    "trustedBy": "Ils nous font confiance",
+
+    "featureTitle": "Tout ce dont vous avez besoin",
+    "featureSubtitle": "Une suite complète d'outils financiers pour gérer votre business.",
+    
+    "feat1Title": "Paiements Universels",
+    "feat1Desc": "Acceptez OM, MOMO, Visa et MasterCard avec une seule intégration.",
+    "feat2Title": "Virements Instantanés",
+    "feat2Desc": "Envoyez de l'argent vers n'importe quel compte ou wallet en temps réel.",
+    "feat3Title": "Cartes Virtuelles",
+    "feat3Desc": "Générez des cartes pour vos dépenses d'entreprise ou vos employés.",
+    "feat4Title": "Sécurité Bancaire",
+    "feat4Desc": "Certifié PCI-DSS. Vos données et celles de vos clients sont chiffrées.",
+
+    "statsTitle": "Conçu pour l'échelle",
+    "stat1Label": "Volume traité",
+    "stat1Value": "10M€+",
+    "stat2Label": "Uptime garanti",
+    "stat2Value": "99.99%",
+    "stat3Label": "Pays couverts",
+    "stat3Value": "12+",
+    
+    "ctaFinalTitle": "Prêt à lancer votre projet ?",
+    "ctaFinalSubtitle": "Rejoignez des milliers de développeurs qui construisent le futur de la finance.",
+    "ctaFinalButton": "Commencer maintenant",
+    "copyright": "© 2026 SharePay Inc."
+  },
+  "Footer": {
+    "tagline": "L'infrastructure de paiement pour l'Afrique de demain.",
+    "product": "Produit",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "api": "API & Docs",
+    "status": "État du système",
+    "company": "Entreprise",
+    "about": "À propos",
+    "blog": "Blog",
+    "careers": "Carrières",
+    "contact": "Contact",
+    "legal": "Légal",
+    "privacy": "Confidentialité",
+    "terms": "Conditions d'utilisation",
+    "security": "Sécurité",
+    "cookies": "Cookies",
+    "systemStatus": "Tous les systèmes opérationnels",
+    "copyright": "© 2026 SharePay Inc. Tous droits réservés."
+  },
+  "Auth": {
+    "loginTitle": "Bon retour parmi nous",
+    "loginSubtitle": "Entrez vos identifiants pour accéder à votre dashboard.",
+    "registerTitle": "Créer un compte",
+    "registerSubtitle": "Rejoignez SharePay et commencez à encaisser.",
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "nom@exemple.com",
+    "passwordLabel": "Mot de passe",
+    "nameLabel": "Nom complet",
+    "namePlaceholder": "John Doe",
+    "loginButton": "Se connecter",
+    "registerButton": "Créer mon compte",
+    "orContinue": "Ou continuer avec",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "forgotPassword": "Mot de passe oublié ?",
+    "termsText": "En cliquant sur continuer, vous acceptez nos",
+    "termsLink": "Conditions d'utilisation",
+    "privacyLink": "Politique de confidentialité",
+    "cta_login": "Se connecter",
+    "cta_register": "S'inscrire",
+    "quote": "SharePay a transformé la façon dont nous gérons nos paiements en Afrique. C'est simple, rapide et sécurisé.",
+    "quoteAuthor": "Sofia Davis",
+    "quoteRole": "CEO de TechAfrica",
+    "rememberMe": "Se souvenir de moi sur cet appareil",
+    "phoneLabel": "Numéro de téléphone",
+    "phonePlaceholder": "+237 6...",
+    "confirmPasswordLabel": "Confirmer le mot de passe",
+    "forgotPasswordTitle": "Mot de passe oublié ?",
+    "forgotPasswordSubtitle": "Pas de panique. Entrez votre email et nous vous enverrons un code de réinitialisation.",
+    "sendResetLink": "Envoyer le code",
+    "backToLogin": "Retour à la connexion",
+    "otpTitle": "Vérification OTP",
+    "otpSubtitle": "Nous avons envoyé un code à",
+    "otpLabel": "Code de vérification",
+    "verifyButton": "Vérifier",
+    "resendCode": "Renvoyer le code",
+    "otpSent": "Code envoyé !",
+    "otpSuccess": "Code vérifié avec succès"
+  },
+  "Dashboard": {
+    "nav": {
+      "overview": "Vue d'ensemble",
+      "transactions": "Transactions",
+      "cards": "Mes Cartes",
+      "settings": "Paramètres",
+      "logout": "Se déconnecter"
+    },
+    "header": {
+      "welcome": "Bonjour, {name} 👋",
+      "subtitle": "Voici ce qu'il se passe sur votre compte aujourd'hui."
+    },
+    "stats": {
+      "totalBalance": "Solde Total",
+      "income": "Revenus (Mois)",
+      "expenses": "Dépenses (Mois)",
+      "savings": "Épargne"
+    },
+    "actions": {
+      "send": "Envoyer",
+      "receive": "Recevoir",
+      "add": "Recharger"
+    },
+    "recent": {
+      "title": "Transactions Récentes",
+      "viewAll": "Tout voir"
+    }
   }
 }

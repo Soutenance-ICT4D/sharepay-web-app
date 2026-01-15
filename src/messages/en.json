@@ -1,9 +1,143 @@
 {
-  "HomePage": {
-    "title": "SharePay 🚀",
-    "subtitle": "The unified payment infrastructure."
+  "Navigation": {
+    "login": "Login",
+    "register": "Sign up",
+    "features": "Features",
+    "pricing": "Pricing",
+    "developers": "Developers",
+    "company": "Company",
+    "menu_payments": "Payments",
+    "menu_transfers": "Transfers",
+    "menu_cards": "Virtual Cards",
+    "menu_api": "API Documentation",
+    "menu_status": "System Status",
+    "menu_about": "About",
+    "menu_contact": "Contact",
+    "desc_payments": "Accept payments from around the world.",
+    "desc_transfers": "Send money to any bank account.",
+    "desc_api": "Integrate SharePay in just a few lines of code.",
+    "desc_status": "Check the availability of our services.",
+    "desc_dashboard": "Track your finances in real-time.",
+    "desc_security": "PCI-DSS standards and encryption."
   },
-  "Theme": {
-    "toggle": "Toggle theme"
+  "Landing": {
+    "heroTitle": "Payment infrastructure for Africa",
+    "heroSubtitle": "Unify Mobile Money, Cards, and Bank Transfers through a single API. Built for developers, designed for growth.",
+    "ctaStart": "Open a free account",
+    "ctaDemo": "Contact sales",
+    "trustedBy": "Trusted by",
+
+    "featureTitle": "Everything you need",
+  "featureSubtitle": "A complete suite of financial tools to manage your business.",
+  
+  "feat1Title": "Universal Payments",
+  "feat1Desc": "Accept Orange Money, MTN MoMo, Visa, and MasterCard with a single integration.",
+  "feat2Title": "Instant Transfers",
+  "feat2Desc": "Send money to any bank account or wallet in real time.",
+  "feat3Title": "Virtual Cards",
+  "feat3Desc": "Generate cards for your business expenses or your employees.",
+  "feat4Title": "Bank-Grade Security",
+  "feat4Desc": "PCI-DSS certified. Your data and your customers’ data are encrypted.",
+    
+    "statsTitle": "Built to scale",
+    "stat1Label": "Processed volume",
+    "stat1Value": "€10M+",
+    "stat2Label": "Guaranteed uptime",
+    "stat2Value": "99.99%",
+    "stat3Label": "Countries covered",
+    "stat3Value": "12+",
+
+    "ctaFinalTitle": "Ready to launch your project?",
+    "ctaFinalSubtitle": "Join thousands of developers building the future of finance.",
+    "ctaFinalButton": "Get started",
+    "copyright": "© 2026 SharePay Inc."
+  },
+  "Footer": {
+    "tagline": "Payment infrastructure for the Africa of tomorrow.",
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "api": "API & Docs",
+    "status": "System Status",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "contact": "Contact",
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms of Service",
+    "security": "Security",
+    "cookies": "Cookies",
+    "systemStatus": "All systems operational",
+    "copyright": "© 2026 SharePay Inc. All rights reserved."
+  },
+  "Auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Enter your credentials to access your dashboard.",
+    "registerTitle": "Create an account",
+    "registerSubtitle": "Join SharePay and start accepting payments.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "name@example.com",
+    "passwordLabel": "Password",
+    "nameLabel": "Full name",
+    "namePlaceholder": "John Doe",
+    "loginButton": "Log in",
+    "registerButton": "Create my account",
+    "orContinue": "Or continue with",
+    "noAccount": "Don't have an account yet?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?",
+    "termsText": "By clicking continue, you agree to our",
+    "termsLink": "Terms of Service",
+    "privacyLink": "Privacy Policy",
+    "cta_login": "Log in",
+    "cta_register": "Sign up",
+    "quote": "SharePay has transformed the way we manage payments in Africa. It's simple, fast, and secure.",
+    "quoteAuthor": "Sofia Davis",
+    "quoteRole": "CEO of TechAfrica",
+    "rememberMe": "Remember me on this device",
+    "phoneLabel": "Phone number",
+    "phonePlaceholder": "+237 6...",
+    "confirmPasswordLabel": "Confirm password",
+    "forgotPasswordTitle": "Forgot your password?",
+    "forgotPasswordSubtitle": "No worries. Enter your email and we’ll send you a reset code.",
+    "sendResetLink": "Send code",
+    "backToLogin": "Back to login",
+    "otpTitle": "OTP Verification",
+    "otpSubtitle": "We’ve sent a code to",
+    "otpLabel": "Verification code",
+    "verifyButton": "Verify",
+    "resendCode": "Resend code",
+    "otpSent": "Code sent!",
+    "otpSuccess": "Code verified successfully"
+  },
+  "Dashboard": {
+    "nav": {
+      "overview": "Overview",
+      "transactions": "Transactions",
+      "cards": "My Cards",
+      "settings": "Settings",
+      "logout": "Log out"
+    },
+    "header": {
+      "welcome": "Hello, {name} 👋",
+      "subtitle": "Here’s what’s happening on your account today."
+    },
+    "stats": {
+      "totalBalance": "Total Balance",
+      "income": "Income (Month)",
+      "expenses": "Expenses (Month)",
+      "savings": "Savings"
+    },
+    "actions": {
+      "send": "Send",
+      "receive": "Receive",
+      "add": "Top up"
+    },
+    "recent": {
+      "title": "Recent Transactions",
+      "viewAll": "View all"
+    }
   }
 }
