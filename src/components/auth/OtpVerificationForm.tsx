@@ -9,8 +9,8 @@ export default function OtpVerificationForm({ email }: { email: string }) {
 
   const handleVerify = async () => {
     // Intégration backend directe ici
-    const res = await authService.verifyOtp(email, otp);
-    if(res.success) {
+    const res = await authService.verifyEmail({ email, otpCode: otp });
+    if(res.succes) {
       // Rediriger vers la page de nouveau mot de passe
     }
   };

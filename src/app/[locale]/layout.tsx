@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "../globals.css"; // Assure-toi que c'est le bon chemin (ou @/app/globals.css)
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/provider/theme-provider"; // Vérifie ton chemin (provider ou providers ?)
@@ -10,8 +9,6 @@ import { routing } from '@/i18n/routing';
 import NextTopLoader from 'nextjs-toploader';
 import { cookies } from 'next/headers'; // <--- 1. IMPORT IMPORTANT
 import { Toaster } from "sonner";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "SharePay",
@@ -51,7 +48,6 @@ export default async function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans text-foreground antialiased",
-          inter.variable
         )}
       >
         <NextTopLoader 
