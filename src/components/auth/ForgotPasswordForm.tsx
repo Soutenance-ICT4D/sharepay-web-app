@@ -11,7 +11,7 @@ export default function ForgotPasswordForm({ onEmailSent }: { onEmailSent: (emai
     setLoading(true);
     // Appel au service préparé
     try {
-      await authService.requestPasswordReset(email);
+      await authService.requestPasswordReset({ email });
       onEmailSent(email); // On passe à l'étape suivante
     } catch (err) {
       console.error("Erreur d'envoi", err);
