@@ -6,11 +6,12 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { authService } from "@/services/authService";
 
 // Schéma de validation
 const forgotSchema = z.object({
@@ -27,7 +28,6 @@ export default function ForgotPasswordPage() {
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = useForm<ForgotFormValues>({
     resolver: zodResolver(forgotSchema),
@@ -35,16 +35,19 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ForgotFormValues) => {
     setIsLoading(true);
-    // Simulation API
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    toast.success(t('otpSent'), {
+    try {
+      const res = await authService.requestPasswordReset({ email: data.email });
+      toast.success(res.message || t('otpSent'), {
         description: `Un code a été envoyé à ${data.email}`
-    });
+      });
 
-    // Redirection vers la page OTP en passant l'email en paramètre (optionnel)
-    router.push(`/auth/otp?email=${encodeURIComponent(data.email)}`);
+      router.push(`/auth/reset-password?email=${encodeURIComponent(data.email)}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur d'envoi";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

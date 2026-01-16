@@ -29,7 +29,9 @@ export default async function RootLayout({
 }: Props) {
   const { locale } = await params;
 
-  if (!routing.locales.includes(locale as any)) {
+  const locales = routing.locales as readonly string[];
+
+  if (!locales.includes(locale)) {
     notFound();
   }
 

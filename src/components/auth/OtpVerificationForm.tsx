@@ -1,7 +1,7 @@
 // src/components/auth/OtpVerificationForm.tsx
 
 import { useState } from "react";
-import { authService } from "@/servives/authService";
+import { authService } from "@/services/authService";
 
 
 export default function OtpVerificationForm({ email }: { email: string }) {

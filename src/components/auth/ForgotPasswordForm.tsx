@@ -1,6 +1,6 @@
 // src/components/auth/ForgotPasswordForm.tsx
-import { useState } from 'react';;
-import { authService } from '@/servives/authService';
+import { useState } from 'react';
+import { authService } from '@/services/authService';
 
 export default function ForgotPasswordForm({ onEmailSent }: { onEmailSent: (email: string) => void }) {
   const [email, setEmail] = useState('');

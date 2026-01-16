@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -16,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { tokenStorage } from "@/lib/token-storage";
+import { authService } from "@/services/authService";
 
 type User = {
   name: string;
@@ -35,6 +37,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  useEffect(() => {
+    const tokens = tokenStorage.get();
+    if (!tokens?.accessToken) {
+      router.push("/");
+    }
+  }, [router]);
+
   // ⚠️ Remplace ceci par ton user venant du backend/store
   const user: User = {
     name: "John Doe",
@@ -48,11 +57,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [avatarLoaded, setAvatarLoaded] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     toast.info("Déconnexion en cours...");
-    setTimeout(() => {
-      router.push("/auth/login");
-    }, 1000);
+    try {
+      await authService.logout();
+    } catch {
+      tokenStorage.clear();
+    } finally {
+      router.push("/");
+    }
   };
 
   const navItems = [

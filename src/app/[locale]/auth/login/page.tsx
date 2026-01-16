@@ -1,6 +1,6 @@
 "use client"; 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { authService } from "@/services/authService";
+import { tokenStorage } from "@/lib/token-storage";
 
 // Schema de validation simple
 const loginSchema = z.object({
@@ -28,6 +30,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const existing = tokenStorage.getPersistent();
+    if (existing?.accessToken) {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const {
     register,
@@ -37,31 +47,25 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  // --- SIMULATION CONNEXION ---
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    
-    // Simulation délai Spring Boot (1.5s)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Tentative de connexion :", data);
-
-    // Simulation : Succès aléatoire ou forcé
-    setIsLoading(false);
-    toast.success("Bon retour parmi nous !", {
-        description: "Connexion réussie.",
-    });
-
-    // Redirection vers le Dashboard (Page à créer plus tard)
-    router.push("/dashboard"); 
+    try {
+      const res = await authService.login(data, { persist: rememberMe });
+      toast.success(res.message || "Connexion réussie.");
+      router.push("/dashboard");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur de connexion";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    
     setIsGoogleLoading(false);
-    toast.success("Connecté avec Google");
-    router.push("/dashboard");
+    toast.error("Google Login non configuré");
   };
 
   return (
@@ -128,7 +132,11 @@ export default function LoginPage() {
 
             {/* SE SOUVENIR DE MOI */}
             <div className="flex items-center space-x-2">
-              <Checkbox id="remember" />
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(!!checked)}
+              />
               <Label
                 htmlFor="remember"
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"

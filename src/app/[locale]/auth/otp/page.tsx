@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Ajout de useEffect
+import { useState } from "react";
 import { useSearchParams } from "next/navigation"; // Attention : useSearchParams de next/navigation
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/routing";
+
 import {
   InputOTP,
   InputOTPGroup,
@@ -13,6 +14,7 @@ import {
 import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
+import { authService } from "@/services/authService";
 
 export default function OtpPage() {
   const t = useTranslations('Auth');
@@ -29,14 +31,20 @@ export default function OtpPage() {
     if (value.length < 6) return; // Ne rien faire si incomplet
 
     setIsLoading(true);
-    // Simulation Vérification
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    toast.success(t('otpSuccess'));
-    
-    // Redirection vers Dashboard ou Reset Password (selon le flow)
-    router.push("/dashboard"); 
+    try {
+      const res = await authService.verifyEmail({
+        email,
+        otpCode: value,
+      });
+
+      toast.success(res.message || t('otpSuccess'));
+      router.push("/auth/login");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur de vérification";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,7 +79,7 @@ export default function OtpPage() {
             </InputOTP>
 
             <div className="text-sm text-muted-foreground">
-                Vous n'avez pas reçu le code ?{" "}
+                Vous n&apos;avez pas reçu le code ?{" "}
                 <button className="text-primary hover:underline font-medium">
                     {t('resendCode')}
                 </button>

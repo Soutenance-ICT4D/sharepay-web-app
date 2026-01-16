@@ -12,6 +12,7 @@ import { toast } from "sonner"; // Pour les notifications
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { authService } from "@/services/authService";
 
 // --- 1. DÉFINITION DU SCHÉMA DE VALIDATION (Contrat avec le backend Spring Boot) ---
 const registerSchema = z.object({
@@ -54,21 +55,24 @@ export default function RegisterPage() {
   // --- 3. SIMULATION DE L'INSCRIPTION (Backend Spring Boot) ---
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
+    try {
+      const res = await authService.register({
+        fullName: data.name,
+        email: data.email,
+        password: data.password,
+        phone: data.phone || undefined,
+      });
 
-    // Simulation d'un délai réseau (2 secondes)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.success(res.message || "OTP envoyé.");
 
-    console.log("Données envoyées au backend Spring Boot :", data);
-
-    // Simulation Succès
-    setIsLoading(false);
-    toast.success("Compte créé avec succès !", {
-      description: "Un code de vérification a été envoyé à votre email.",
-    });
-
-    // ✅ Aller sur la page OTP avec l'email
-    router.push(`/auth/otp?email=${encodeURIComponent(data.email)}`);
-
+      // ✅ Aller sur la page OTP avec l'email
+      router.push(`/auth/otp?email=${encodeURIComponent(data.email)}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur d'inscription";
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // --- 4. SIMULATION GOOGLE ---

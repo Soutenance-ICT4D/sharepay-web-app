@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "@/i18n/routing";
 import { useTransition } from "react";
 import { Check, Loader2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Image from "next/image"; // On utilisera une balise img standard pour éviter la config next.config.ts pour l'instant
 
 export function LanguageSwitcher() {
   const locale = useLocale();

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ArrowDownLeft, Plus, Wallet, MoreHorizontal } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Plus, Wallet } from "lucide-react";
 
 export default function DashboardPage() {
   const t = useTranslations('Dashboard');
