@@ -1,27 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/i18n/routing";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { authService } from "@/services/authService";
+import OtpVerificationForm from "@/components/auth/OtpVerificationForm";
 
 const resetSchema = z
   .object({
     otpCode: z.string().min(6, "OTP requis (6 chiffres)"),
-    newPassword: z.string().min(8, "Le mot de passe doit faire au moins 8 caractères"),
-    confirmPassword: z.string().min(1, "Confirmation requise"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Les mots de passe ne correspondent pas",
-    path: ["confirmPassword"],
   });
 
 type ResetFormValues = z.infer<typeof resetSchema>;
@@ -31,17 +25,33 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
 
+  const cooldownKey = `sharepay.resetOtpResendEndsAt:${email}`;
+
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [suggestLogin, setSuggestLogin] = useState(false);
+  const [suggestGoogle, setSuggestGoogle] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = window.setInterval(() => {
+      setResendCooldown((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [resendCooldown]);
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<ResetFormValues>({
     resolver: zodResolver(resetSchema),
   });
+
+  const otpCode = watch("otpCode") ?? "";
 
   const onSubmit = async (data: ResetFormValues) => {
     if (!email) {
@@ -49,16 +59,25 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    setSuggestLogin(false);
+    setSuggestGoogle(false);
+
     setIsLoading(true);
     try {
-      const res = await authService.resetPassword({
+      const verifyRes = await authService.verifyResetOtp({
         email,
         otpCode: data.otpCode,
-        newPassword: data.newPassword,
       });
 
-      toast.success(res.message || "Mot de passe mis à jour");
-      router.push("/auth/login");
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(
+          "sharepay.resetPassword",
+          JSON.stringify({ email, resetToken: verifyRes.data.resetToken })
+        );
+      }
+
+      toast.success(verifyRes.message || "OTP vérifié");
+      router.push(`/auth/reset-password/update?email=${encodeURIComponent(email)}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erreur";
       toast.error(message);
@@ -67,17 +86,60 @@ export default function ResetPasswordPage() {
     }
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const raw = window.sessionStorage.getItem(cooldownKey);
+    const endsAt = raw ? Number(raw) : NaN;
+    const remaining = Number.isFinite(endsAt) ? Math.ceil((endsAt - Date.now()) / 1000) : 0;
+
+    if (remaining > 0) {
+      setResendCooldown(remaining);
+      return;
+    }
+
+    const nextEndsAt = Date.now() + 60_000;
+    window.sessionStorage.setItem(cooldownKey, String(nextEndsAt));
+    setResendCooldown(60);
+  }, [cooldownKey]);
+
+  const onResend = async () => {
+    if (!email) {
+      toast.error("Email manquant dans l'URL");
+      return;
+    }
+    if (resendCooldown > 0 || isResending) return;
+
+    setIsResending(true);
+    setSuggestLogin(false);
+    setSuggestGoogle(false);
+
+    try {
+      const res = await authService.resendResetPasswordOtp({ email });
+      toast.success(res.message || `Un code a été envoyé à ${email}`);
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(cooldownKey, String(Date.now() + 60_000));
+      }
+      setResendCooldown(60);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur";
+      toast.error(message);
+
+      const lower = message.toLowerCase();
+      if (lower.includes("user not found")) {
+        setSuggestLogin(true);
+      }
+      if (lower.includes("social") || lower.includes("google")) {
+        setSuggestGoogle(true);
+      }
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Nouveau mot de passe
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Entrez le code OTP reçu par email et votre nouveau mot de passe.
-        </p>
-      </div>
-
       <div className="grid gap-6">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-5">
@@ -86,92 +148,44 @@ export default function ResetPasswordPage() {
               <Input value={email} readOnly className="h-12 text-base" />
             </div>
 
-            <div className="grid gap-2 text-left">
-              <Label htmlFor="otpCode" className="text-base font-medium">
-                Code OTP
-              </Label>
-              <Input
-                {...register("otpCode")}
-                id="otpCode"
-                inputMode="numeric"
-                placeholder="123456"
-                className="h-12 text-base transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary focus-visible:bg-primary/5"
-              />
-              {errors.otpCode && (
-                <p className="text-xs text-red-500">{errors.otpCode.message}</p>
-              )}
-            </div>
-
-            <div className="grid gap-2 text-left">
-              <Label htmlFor="newPassword" className="text-base font-medium">
-                Nouveau mot de passe
-              </Label>
-              <div className="relative">
-                <Input
-                  {...register("newPassword")}
-                  id="newPassword"
-                  type={showPassword ? "text" : "password"}
-                  className="h-12 pr-10 text-base transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary focus-visible:bg-primary/5"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              {errors.newPassword && (
-                <p className="text-xs text-red-500">{errors.newPassword.message}</p>
-              )}
-            </div>
-
-            <div className="grid gap-2 text-left">
-              <Label htmlFor="confirmPassword" className="text-base font-medium">
-                Confirmer le mot de passe
-              </Label>
-              <div className="relative">
-                <Input
-                  {...register("confirmPassword")}
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  className="h-12 pr-10 text-base transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary focus-visible:bg-primary/5"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
-              )}
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-12 text-base font-bold mt-2 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300"
-            >
-              {isLoading ? (
+            <input {...register("otpCode")} className="hidden" tabIndex={-1} />
+            <OtpVerificationForm
+              email={email}
+              title="Vérifier le code"
+              subtitle="Entrez le code OTP reçu par email."
+              otp={otpCode}
+              onOtpChange={(val) => setValue("otpCode", val, { shouldValidate: true })}
+              onSubmit={() => handleSubmit(onSubmit)()}
+              submitLabel="Vérifier"
+              isSubmitting={isLoading}
+              onResend={onResend}
+              isResending={isResending}
+              resendCooldown={resendCooldown}
+              resendLabel="Renvoyer le code"
+              suggestions={
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Mise à jour...
+                  {suggestLogin ? (
+                    <div className="text-sm text-muted-foreground">
+                      <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                        Se connecter
+                      </Link>
+                    </div>
+                  ) : null}
+
+                  {suggestGoogle ? (
+                    <div className="text-sm text-muted-foreground">
+                      <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                        Continuer avec Google
+                      </Link>
+                    </div>
+                  ) : null}
+
+                  {errors.otpCode ? (
+                    <p className="text-xs text-red-500">{errors.otpCode.message}</p>
+                  ) : null}
                 </>
-              ) : (
-                "Mettre à jour"
-              )}
-            </Button>
+              }
+            />
           </div>
         </form>
 

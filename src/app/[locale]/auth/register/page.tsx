@@ -56,6 +56,18 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(
+          "sharepay.pendingRegister",
+          JSON.stringify({
+            fullName: data.name,
+            email: data.email,
+            password: data.password,
+            phone: data.phone || undefined,
+          })
+        );
+      }
+
       const res = await authService.register({
         fullName: data.name,
         email: data.email,

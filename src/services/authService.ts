@@ -25,6 +25,18 @@ export const authService = {
     });
   },
 
+  async resendVerifyEmailOtp(input: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string;
+  }) {
+    return apiRequest<EmptyData>(`${AUTH_BASE}/register`, {
+      method: "POST",
+      body: input,
+    });
+  },
+
   async verifyEmail(input: { email: string; otpCode: string }) {
     return apiRequest<EmptyData>(`${AUTH_BASE}/verify-email`, {
       method: "POST",
@@ -89,7 +101,21 @@ export const authService = {
     });
   },
 
-  async resetPassword(input: { email: string; otpCode: string; newPassword: string }) {
+  async resendResetPasswordOtp(input: { email: string }) {
+    return apiRequest<EmptyData>(`${AUTH_BASE}/request-password-reset`, {
+      method: "POST",
+      body: input,
+    });
+  },
+
+  async verifyResetOtp(input: { email: string; otpCode: string }) {
+    return apiRequest<{ resetToken: string }>(`${AUTH_BASE}/verify-reset-otp`, {
+      method: "POST",
+      body: input,
+    });
+  },
+
+  async resetPassword(input: { email: string; resetToken: string; newPassword: string }) {
     return apiRequest<EmptyData>(`${AUTH_BASE}/reset-password`, {
       method: "POST",
       body: input,

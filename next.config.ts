@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
                 source: '/merchants/auth/:path*',
                 destination: `${baseUrl}/merchants/auth/:path*`,
             },
+            {
+                source: '/api/v1/merchants/auth/:path*',
+                destination: `${baseUrl}/api/v1/merchants/auth/:path*`,
+            },
         ];
     },
 };

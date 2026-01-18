@@ -1,20 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation"; // Attention : useSearchParams de next/navigation
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/routing";
-
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
 import { authService } from "@/services/authService";
+import OtpVerificationForm from "@/components/auth/OtpVerificationForm";
 
 export default function OtpPage() {
   const t = useTranslations('Auth');
@@ -25,13 +19,44 @@ export default function OtpPage() {
   const email = searchParams.get("email") || "votre email";
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [suggestLogin, setSuggestLogin] = useState(false);
+  const [suggestGoogle, setSuggestGoogle] = useState(false);
   const [value, setValue] = useState("");
+
+  const cooldownKey = `sharepay.otpResendEndsAt:${email}`;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const raw = window.sessionStorage.getItem(cooldownKey);
+    const endsAt = raw ? Number(raw) : NaN;
+    const remaining = Number.isFinite(endsAt) ? Math.ceil((endsAt - Date.now()) / 1000) : 0;
+
+    if (remaining > 0) {
+      setResendCooldown(remaining);
+      return;
+    }
+
+    setResendCooldown(0);
+  }, [cooldownKey]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = window.setInterval(() => {
+      setResendCooldown((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [resendCooldown]);
 
   const onVerify = async () => {
     if (value.length < 6) return; // Ne rien faire si incomplet
 
     setIsLoading(true);
     try {
+      setSuggestLogin(false);
+      setSuggestGoogle(false);
       const res = await authService.verifyEmail({
         email,
         otpCode: value,
@@ -47,58 +72,93 @@ export default function OtpPage() {
     }
   };
 
+  const onResend = async () => {
+    if (resendCooldown > 0 || isResending) return;
+
+    setIsResending(true);
+    setSuggestLogin(false);
+    setSuggestGoogle(false);
+
+    try {
+      if (typeof window === "undefined") {
+        throw new Error("Action non disponible");
+      }
+
+      const raw = window.sessionStorage.getItem("sharepay.pendingRegister");
+      if (!raw) {
+        throw new Error("Informations d'inscription introuvables. Recommencez l'inscription.");
+      }
+
+      const parsed = JSON.parse(raw) as {
+        fullName: string;
+        email: string;
+        password: string;
+        phone?: string;
+      };
+
+      const res = await authService.resendVerifyEmailOtp(parsed);
+      toast.success(res.message || `Un code a été envoyé à ${email}`);
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(cooldownKey, String(Date.now() + 60_000));
+      }
+      setResendCooldown(60);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur";
+      toast.error(message);
+
+      const lower = message.toLowerCase();
+      if (lower.includes("email already") || lower.includes("already used")) {
+        setSuggestLogin(true);
+      }
+      if (lower.includes("social") || lower.includes("google")) {
+        setSuggestGoogle(true);
+      }
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {t('otpTitle')}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t('otpSubtitle')} <span className="font-medium text-foreground">{email}</span>
-        </p>
-      </div>
-
       <div className="grid gap-6 mt-4">
-        <div className="flex flex-col items-center justify-center space-y-4">
-            
-            {/* COMPOSANT OTP */}
-            <InputOTP
-                maxLength={6}
-                value={value}
-                onChange={(val) => setValue(val)}
-            >
-                <InputOTPGroup className="gap-2">
-                    {/* On sépare les slots pour le style */}
-                    <InputOTPSlot index={0} className="h-12 w-12 text-lg border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary" />
-                    <InputOTPSlot index={1} className="h-12 w-12 text-lg border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary" />
-                    <InputOTPSlot index={2} className="h-12 w-12 text-lg border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary" />
-                    <InputOTPSlot index={3} className="h-12 w-12 text-lg border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary" />
-                    <InputOTPSlot index={4} className="h-12 w-12 text-lg border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary" />
-                    <InputOTPSlot index={5} className="h-12 w-12 text-lg border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-primary focus-within:border-primary" />
-                </InputOTPGroup>
-            </InputOTP>
+        <OtpVerificationForm
+          email={email}
+          title={t('otpTitle')}
+          subtitle={
+            <>
+              {t('otpSubtitle')} <span className="font-medium text-foreground">{email}</span>
+            </>
+          }
+          otp={value}
+          onOtpChange={setValue}
+          onSubmit={onVerify}
+          submitLabel={t('verifyButton')}
+          isSubmitting={isLoading}
+          onResend={onResend}
+          isResending={isResending}
+          resendCooldown={resendCooldown}
+          resendLabel={t('resendCode')}
+          suggestions={
+            <>
+              {suggestLogin ? (
+                <div className="text-sm text-muted-foreground">
+                  <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                    Se connecter
+                  </Link>
+                </div>
+              ) : null}
 
-            <div className="text-sm text-muted-foreground">
-                Vous n&apos;avez pas reçu le code ?{" "}
-                <button className="text-primary hover:underline font-medium">
-                    {t('resendCode')}
-                </button>
-            </div>
-
-            {/* BOUTON VERIFY */}
-            <Button 
-                onClick={onVerify}
-                disabled={isLoading || value.length < 6}
-                className="w-full h-12 text-base font-bold mt-4 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all duration-300"
-            >
-              {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Vérification...
-                  </>
-              ) : t('verifyButton')}
-            </Button>
-        </div>
+              {suggestGoogle ? (
+                <div className="text-sm text-muted-foreground">
+                  <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                    Continuer avec Google
+                  </Link>
+                </div>
+              ) : null}
+            </>
+          }
+        />
 
         {/* RETOUR */}
         <p className="px-8 text-center text-sm text-muted-foreground">
