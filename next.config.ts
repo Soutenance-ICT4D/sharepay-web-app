@@ -7,11 +7,13 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
     output: 'standalone',
     async rewrites() {
-        const baseUrl = process.env.NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL;
+        const baseUrl =
+            process.env.MERCHANT_SERVICE_BASE_URL ??
+            process.env.NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL;
 
         if (!baseUrl) {
             throw new Error(
-                'Missing env var: NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL. Define it in .env.local (e.g. http://localhost:8083) and restart the dev server.'
+                'Missing env var: MERCHANT_SERVICE_BASE_URL (recommended) or NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL. Define it (e.g. http://localhost:8083) and restart/redeploy.'
             );
         }
 
