@@ -8,7 +8,6 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL: z.string().url().default("http://localhost:8080"),
 });
-
 // Validation
 // process.env contient tes variables, safeParse vérifie si elles respectent le schéma
 const _env = envSchema.safeParse(process.env);

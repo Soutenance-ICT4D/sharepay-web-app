@@ -51,9 +51,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { iconSrc: "/icons/dashboard.png", label: "Vue d'ensemble", href: "/dashboard" },
+    { iconSrc: "/icons/income.png", label: "Payment Link", href: "/dashboard/payment-link" },
     { iconSrc: "/icons/transaction.png", label: "Transactions", href: "/dashboard/transactions" },
     { iconSrc: "/icons/customer.png", label: "Customers", href: "/dashboard/customers" },
-    { iconSrc: "/icons/income.png", label: "Payment Link", href: "/dashboard/payment-link" },
     { iconSrc: "/icons/code.png", label: "Developpeurs", href: "/dashboard/developers" },
   ];
 

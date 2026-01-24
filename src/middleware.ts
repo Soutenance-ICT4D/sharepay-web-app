@@ -10,5 +10,5 @@ export default createMiddleware({
  
 export const config = {
   // Matcher pour ignorer les fichiers internes (_next), les images, etc.
-  matcher: ['/', '/(fr|en)/:path*']
+  matcher: ['/', '/pay/:path*', '/(fr|en)/:path*']
 };
