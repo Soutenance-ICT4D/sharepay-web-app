@@ -7,7 +7,15 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
     output: 'standalone',
     async rewrites() {
-        const baseUrl = process.env.NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL || 'https://sharepay-merchant-service-production.up.railway.app/api/v1';
+        const baseUrl = process.env.NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL;
+
+        if (!baseUrl) {
+            throw new Error(
+                'Missing env var: NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL. Define it in .env.local (e.g. http://localhost:8083) and restart the dev server.'
+            );
+        }
+
+        console.log('✅ Rewrites base URL', baseUrl);
         return [
             {
                 source: '/merchants/auth/:path*',
