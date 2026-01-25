@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  NEXT_PUBLIC_BACKEND_BASE_URL: z.string().url().default("http://localhost:8080"),
+  NEXT_PUBLIC_BACKEND_BASE_URL: z.string().url().default("https://72c329e07eaf.ngrok-free.app1"),
 });
 
 // Validation

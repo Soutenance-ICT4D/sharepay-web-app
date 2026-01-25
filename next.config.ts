@@ -7,8 +7,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
     output: 'standalone',
     async rewrites() {
-        const rawBaseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'https://sharepay-merchant-service-production.up.railway.app/api/v1';
-        const baseUrl = rawBaseUrl.endsWith('/api/v1') ? rawBaseUrl : `${rawBaseUrl.replace(/\/+$/, '')}/api/v1`;
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'https://72c329e07eaf.ngrok-free.app';
         return [
             {
                 source: '/merchants/auth/:path*',
