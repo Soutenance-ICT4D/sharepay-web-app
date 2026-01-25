@@ -1,19 +1,18 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  // Variables Serveur (cachées)
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  
-  // Variables Client (visibles, préfixées par NEXT_PUBLIC_)
-  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
-  NEXT_PUBLIC_MERCHANT_SERVICE_BASE_URL: z.string().url().default("http://localhost:8080"),
+  NEXT_PUBLIC_BACKEND_BASE_URL: z.string().url().default("http://localhost:8080"),
 });
+
 // Validation
-// process.env contient tes variables, safeParse vérifie si elles respectent le schéma
-const _env = envSchema.safeParse(process.env);
+const _env = envSchema.safeParse({
+  NODE_ENV: process.env.NODE_ENV,
+  NEXT_PUBLIC_BACKEND_BASE_URL: process.env.NEXT_PUBLIC_BACKEND_BASE_URL,
+});
 
 if (!_env.success) {
-  console.error("❌ Invalid environment variables:", _env.error.format());
+  console.error("❌ Invalid environment variables:", _env.error.flatten().fieldErrors);
   throw new Error("Invalid environment variables");
 }
 
