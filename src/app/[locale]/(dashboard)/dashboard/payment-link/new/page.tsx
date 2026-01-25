@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/i18n/routing";
+import { toast } from "sonner";
+
 import { 
   ArrowLeft, 
   Image as ImageIcon, 
@@ -17,6 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { ApiError } from "@/lib/api-client";
+import { developerAppsService, type DeveloperApp } from "@/services/developerAppsService";
+import { paymentLinksService } from "@/services/paymentLinksService";
 
 // --- Types & Helpers (Gardés identiques) ---
 type StoredPaymentLinkRow = {
@@ -137,7 +142,10 @@ export default function NewPaymentLinkPage() {
   const router = useRouter();
 
   // States
-  const [applicationTarget, setApplicationTarget] = useState<string>("");
+  const [apps, setApps] = useState<DeveloperApp[]>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
+  const [defaultAppId, setDefaultAppId] = useState<string | null>(null);
+  const [selectedAppId, setSelectedAppId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState<string>("");
   const [amountType, setAmountType] = useState<"fixed" | "free">("fixed");
@@ -154,6 +162,41 @@ export default function NewPaymentLinkPage() {
   const [themeColor, setThemeColor] = useState<string>("#098865");
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    setAppsLoading(true);
+    developerAppsService
+      .list()
+      .then((res) => {
+        if (cancelled) return;
+        const all = res.data ?? [];
+
+        const defaultApp = all.find((a) => {
+          const anyA = a as unknown as Record<string, unknown>;
+          return anyA.isDefault === true || anyA.default === true;
+        });
+
+        setDefaultAppId(defaultApp?.id ?? null);
+        setApps(all.filter((a) => a.id !== defaultApp?.id));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Erreur lors du chargement des applications";
+        const desc = err instanceof ApiError ? `HTTP ${err.status}` : undefined;
+        toast.error(message, { description: desc });
+        setApps([]);
+        setDefaultAppId(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setAppsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const canSubmit = useMemo(() => {
     if (title.trim().length < 3) return false;
     if (amountType === "free") return true;
@@ -162,7 +205,7 @@ export default function NewPaymentLinkPage() {
   }, [amount, amountType, title]);
 
   // Handler de soumission (identique au vôtre)
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -172,38 +215,78 @@ export default function NewPaymentLinkPage() {
       return;
     }
 
-    const amountValue = amountType === "fixed" ? Number(amount) : undefined;
-    const logoUrl = logoMode === "url" ? logoUrlInput : logoMode === "upload" ? logoDataUrl : undefined;
+    const appId = selectedAppId || defaultAppId;
+    if (!appId) {
+      setError("Veuillez sélectionner une application (ou configurer une application par défaut).");
+      return;
+    }
 
-    const now = new Date();
-    const baseSlug = slugify(cleanTitle);
-    const suffix = Math.random().toString(36).slice(2, 6);
-    const slug = baseSlug.length ? `${baseSlug}-${suffix}` : suffix;
+    try {
+      const amountValue = amountType === "fixed" ? Number(amount) : undefined;
+      const logoUrl = logoMode === "url" ? logoUrlInput : logoMode === "upload" ? logoDataUrl : undefined;
 
-    const next: StoredPaymentLinkRow = {
-      id: slug,
-      applicationTarget: applicationTarget.trim() || undefined,
-      title: cleanTitle,
-      description: description.trim() || undefined,
-      amountType,
-      amountValue,
-      currency,
-      logoUrl,
-      themeColor,
-      redirectUrl: redirectUrl.trim() || undefined,
-      expiresAt: expiresAt.trim() || undefined,
-      maxUses: maxUses.trim() ? Number(maxUses) : undefined,
-      collectCustomerInfo,
-      createdAtLabel: `Créé le ${formatCreatedAtLabel(now)}`,
-      amountLabel: amountType === "free" ? "Libre" : `${amountValue} ${currency}`,
-      payments: 0,
-      status,
-      urlLabel: `pay.me/${slug}`,
-    };
+      const res = await paymentLinksService.create({
+        appId,
+        title: cleanTitle,
+        description: description.trim() || null,
+        amountType,
+        amountValue: amountType === "fixed" ? amountValue ?? null : null,
+        currency,
+        logoUrl: logoUrl ?? null,
+        themeColor,
+        redirectUrl: redirectUrl.trim() || null,
+        expiresAt: expiresAt.trim() || null,
+        maxUses: maxUses.trim() ? Number(maxUses) : null,
+        collectCustomerInfo,
+        status,
+      });
 
-    const current = readStoredLinks();
-    writeStoredLinks([next, ...current]);
-    router.push("/dashboard/payment-link");
+      const created = res.data;
+      const id = created.id || slugify(cleanTitle);
+      const createdAt = created.createdAt ? new Date(created.createdAt) : new Date();
+
+      const next: StoredPaymentLinkRow = {
+        id,
+        applicationTarget: selectedAppId || undefined,
+        title: cleanTitle,
+        description: description.trim() || undefined,
+        amountType,
+        amountValue: created.amountValue ?? amountValue,
+        currency,
+        logoUrl: created.logoUrl ?? logoUrl,
+        themeColor: created.themeColor ?? themeColor,
+        redirectUrl: redirectUrl.trim() || undefined,
+        expiresAt: expiresAt.trim() || undefined,
+        maxUses: maxUses.trim() ? Number(maxUses) : undefined,
+        collectCustomerInfo,
+        createdAtLabel: `Créé le ${formatCreatedAtLabel(createdAt)}`,
+        amountLabel: amountType === "free" ? "Libre" : `${amountValue} ${currency}`,
+        payments: 0,
+        status,
+        urlLabel: `pay.me/${id}`,
+      };
+
+      const current = readStoredLinks();
+      writeStoredLinks([next, ...current]);
+
+      toast.success("Lien créé", {
+        description: `${cleanTitle} • ${amountType === "free" ? "montant libre" : `${amountValue} ${currency}`}`,
+      });
+
+      router.push("/dashboard/payment-link");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message || "Erreur lors de la création");
+        toast.error(err.message || "Erreur lors de la création", {
+          description: `HTTP ${err.status}`,
+        });
+        return;
+      }
+
+      const message = err instanceof Error ? err.message : "Erreur lors de la création";
+      setError(message);
+      toast.error(message);
+    }
   };
 
   return (
@@ -239,12 +322,22 @@ export default function NewPaymentLinkPage() {
                         <Label>Application cible</Label>
                         <select 
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                            value={applicationTarget}
-                            onChange={(e) => setApplicationTarget(e.target.value)}
+                            value={selectedAppId}
+                            onChange={(e) => setSelectedAppId(e.target.value)}
+                            disabled={appsLoading}
                         >
-                            <option value="">Aucune</option>
-                            <option value="web">Web</option>
-                            <option value="mobile">Mobile</option>
+                            {appsLoading ? (
+                              <option value="">Chargement...</option>
+                            ) : (
+                              <>
+                                <option value="">Aucune</option>
+                                {apps.map((app) => (
+                                  <option key={app.id} value={app.id}>
+                                    {app.name}
+                                  </option>
+                                ))}
+                              </>
+                            )}
                         </select>
                     </div>
                     <div className="space-y-2">

@@ -1,5 +1,7 @@
 export type ApiResponse<T> = {
-  succes: boolean;
+  succes?: boolean;
+  success?: boolean;
+  messageKey?: string;
   message: string;
   data: T;
 };
@@ -53,7 +55,9 @@ export async function apiRequest<T>(
 
   const apiPayload = payload as ApiResponse<T>;
 
-  if (apiPayload.succes === false) {
+  const okFlag = apiPayload.success ?? apiPayload.succes;
+
+  if (okFlag === false) {
     throw new ApiError(apiPayload.message || "Request failed", res.status, apiPayload);
   }
 

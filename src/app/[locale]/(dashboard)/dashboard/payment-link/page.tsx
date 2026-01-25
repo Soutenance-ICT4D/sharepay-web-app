@@ -2,14 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/i18n/routing";
-import {
-  CalendarDays,
-  History,
-  Link2Off,
-  Megaphone,
-  ShoppingBag,
-  Sparkles,
-} from "lucide-react";
+import { toast } from "sonner";
+import { CalendarDays, History, Link2Off } from "lucide-react";
 
 import { PaymentLinkPageHeading } from "@/components/dashboard/payment-link/payment-link-page-heading";
 import {
@@ -21,6 +15,8 @@ import {
   type PaymentLinkRow,
 } from "@/components/dashboard/payment-link/payment-link-table";
 import { PaymentLinkTipCard } from "@/components/dashboard/payment-link/payment-link-tip-card";
+import { ApiError } from "@/lib/api-client";
+import { paymentLinksService } from "@/services/paymentLinksService";
 
 type StoredPaymentLinkRow = {
   id: string;
@@ -45,78 +41,86 @@ type StoredPaymentLinkRow = {
 
 const STORAGE_KEY = "sharepay.paymentLinks";
 
+function readStoredLinks(): StoredPaymentLinkRow[] {
+  if (typeof window === "undefined") return [];
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as StoredPaymentLinkRow[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredLinks(rows: StoredPaymentLinkRow[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+}
+
+function formatCreatedAtLabel(date: Date) {
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
 export default function PaymentLinkPage() {
   const router = useRouter();
 
-  const defaultRows = useMemo<PaymentLinkRow[]>(
-    () => [
-      {
-        id: "premium-sub-oct",
-        title: "Abonnement Premium Mensuel",
-        createdAtLabel: "Créé le 12 Oct 2023",
-        amountLabel: "49.99 €",
-        payments: 156,
-        status: "ACTIVE",
-        urlLabel: "pay.me/premium-sub-oct",
-        icon: <ShoppingBag className="h-4 w-4" />,
-      },
-      {
-        id: "workshop-2023",
-        title: "Ticket Workshop Design",
-        createdAtLabel: "Créé le 05 Oct 2023",
-        amountLabel: "120.00 €",
-        payments: 42,
-        status: "EXPIRED",
-        urlLabel: "pay.me/workshop-2023",
-        icon: <CalendarDays className="h-4 w-4" />,
-      },
-      {
-        id: "flash-consul-1h",
-        title: "Consultation Flash (1h)",
-        createdAtLabel: "Créé le 28 Sep 2023",
-        amountLabel: "150.00 €",
-        payments: 12,
-        status: "ACTIVE",
-        urlLabel: "pay.me/flash-consul-1h",
-        icon: <Sparkles className="h-4 w-4" />,
-      },
-      {
-        id: "donate-sport-local",
-        title: "Donation Association Sport",
-        createdAtLabel: "Créé le 20 Sep 2023",
-        amountLabel: "Variable",
-        payments: 832,
-        status: "ACTIVE",
-        urlLabel: "pay.me/donate-sport-local",
-        icon: <Megaphone className="h-4 w-4" />,
-      },
-    ],
-    []
-  );
-
-  const [rows, setRows] = useState<PaymentLinkRow[]>(defaultRows);
+  const [rows, setRows] = useState<PaymentLinkRow[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        setRows(defaultRows);
-        return;
-      }
+    let cancelled = false;
+    setIsLoading(true);
 
-      const parsed = JSON.parse(raw) as StoredPaymentLinkRow[];
-      const stored = Array.isArray(parsed)
-        ? parsed.map<PaymentLinkRow>((row) => ({
-            ...row,
+    paymentLinksService
+      .list()
+      .then((res) => {
+        if (cancelled) return;
+
+        const next = (res.data ?? []).map<PaymentLinkRow>((link) => {
+          const createdAt = link.createdAt ? new Date(link.createdAt) : null;
+          const createdAtLabel = createdAt
+            ? `Créé le ${formatCreatedAtLabel(createdAt)}`
+            : "Créé récemment";
+
+          const amountLabel =
+            link.amountType === "free" ? "Variable" : link.amountValue != null ? `${link.amountValue} ${link.currency ?? ""}`.trim() : "—";
+
+          return {
+            id: link.id,
+            title: link.title,
+            createdAtLabel,
+            amountLabel,
+            payments: link.payments ?? 0,
+            status: link.status ?? "ACTIVE",
+            urlLabel: link.link || (link.id ? `pay.me/${link.id}` : "—"),
             icon: <Link2Off className="h-4 w-4" />,
-          }))
-        : [];
+          };
+        });
 
-      setRows([...stored, ...defaultRows]);
-    } catch {
-      setRows(defaultRows);
-    }
-  }, [defaultRows]);
+        setRows(next);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Erreur lors du chargement des liens";
+        const desc = err instanceof ApiError ? `HTTP ${err.status}` : undefined;
+        toast.error(message, { description: desc });
+
+        setRows([]);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const stats: PaymentLinkStat[] = useMemo(() => {
     const activeCount = rows.filter((r) => r.status === "ACTIVE").length;
@@ -167,6 +171,44 @@ export default function PaymentLinkPage() {
     return `Affichage de ${rows.length} sur ${rows.length} liens`;
   }, [rows.length]);
 
+  const handleExpire = async (id: string) => {
+    if (typeof window !== "undefined") {
+      const ok = window.confirm("Faire expirer ce lien ?");
+      if (!ok) return;
+    }
+
+    try {
+      await paymentLinksService.update(id, { status: "EXPIRED" });
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: "EXPIRED" } : r)));
+      const stored = readStoredLinks();
+      writeStoredLinks(stored.map((r) => (r.id === id ? { ...r, status: "EXPIRED" } : r)));
+      toast.success("Lien expiré");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur lors de l'expiration";
+      const desc = err instanceof ApiError ? `HTTP ${err.status}` : undefined;
+      toast.error(message, { description: desc });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (typeof window !== "undefined") {
+      const ok = window.confirm("Supprimer définitivement ce lien ?");
+      if (!ok) return;
+    }
+
+    try {
+      await paymentLinksService.remove(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      const stored = readStoredLinks();
+      writeStoredLinks(stored.filter((r) => r.id !== id));
+      toast.success("Lien supprimé");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur lors de la suppression";
+      const desc = err instanceof ApiError ? `HTTP ${err.status}` : undefined;
+      toast.error(message, { description: desc });
+    }
+  };
+
   return (
     <div className="space-y-10">
       <PaymentLinkPageHeading
@@ -178,11 +220,13 @@ export default function PaymentLinkPage() {
       <PaymentLinkStatsGrid stats={stats} />
 
       <PaymentLinkTable
-        title="Tous les liens"
+        title={isLoading ? "Chargement…" : "Tous les liens"}
         rows={rows}
         footerLabel={footerLabel}
         onFilter={() => window.alert("Filtrer (à implémenter)")}
         onExport={() => window.alert("Exporter (à implémenter)")}
+        onExpire={handleExpire}
+        onDelete={handleDelete}
       />
 
       <PaymentLinkTipCard

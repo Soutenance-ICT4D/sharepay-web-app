@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe2 } from "lucide-react";
+import Image from "next/image";
 
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
@@ -11,8 +11,15 @@ export function PayAppBar() {
       <header className="border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto w-full max-w-5xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center border">
-              <Globe2 className="h-4 w-4 text-muted-foreground" />
+            <div className="h-9 w-9 flex items-center justify-center">
+              <Image
+                src="/images/logo_sharepay_bg_remove_svg.svg"
+                alt="SharePay"
+                width={32}
+                height={32}
+                className="h-8 w-8"
+                priority
+              />
             </div>
             <div className="min-w-0">
               <div className="text-sm font-extrabold tracking-tight text-foreground truncate">SharePay</div>

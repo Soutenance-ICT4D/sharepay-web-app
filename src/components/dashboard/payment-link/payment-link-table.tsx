@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useMemo, useState } from "react";
-import { Copy, Download, Filter, MoreVertical } from "lucide-react";
+import { Copy, Download, Filter, Trash2, TimerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type PaymentLinkRowStatus = "ACTIVE" | "EXPIRED";
@@ -48,12 +48,16 @@ export function PaymentLinkTable({
   footerLabel,
   onFilter,
   onExport,
+  onExpire,
+  onDelete,
 }: {
   title: string;
   rows: PaymentLinkRow[];
   footerLabel: string;
   onFilter?: () => void;
   onExport?: () => void;
+  onExpire?: (id: string) => void | Promise<void>;
+  onDelete?: (id: string) => void | Promise<void>;
 }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -158,9 +162,29 @@ export function PaymentLinkTable({
                 </td>
 
                 <td className="px-4 md:px-6 py-4 text-right">
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs font-bold"
+                      disabled={row.status !== "ACTIVE"}
+                      onClick={() => onExpire?.(row.id)}
+                    >
+                      <TimerOff className="h-4 w-4" />
+                      Expirer
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs font-bold"
+                      onClick={() => onDelete?.(row.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}

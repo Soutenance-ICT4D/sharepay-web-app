@@ -35,8 +35,11 @@ export function PayPage({
   mode: "default" | "id";
 }) {
   const accent = data.themeColor || "#098865";
+  const accentRing = `${accent}4D`;
+  const accentBg = `${accent}0D`;
 
   const [partner, setPartner] = useState<"orange" | "mtn">("orange");
+  const [hoveredPartner, setHoveredPartner] = useState<"orange" | "mtn" | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [amountInput, setAmountInput] = useState("");
@@ -59,7 +62,7 @@ export function PayPage({
   }, [amountInput, data.amountType, data.collectCustomerInfo, email, momoPhone, name]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ "--pay-accent": accent } as React.CSSProperties}>
       <PayAppBar />
 
       <div className="flex items-center justify-center px-4 py-10">
@@ -103,23 +106,43 @@ export function PayPage({
                       { key: "mtn", label: "MTN MoMo", src: "/images/partners/mtn.png" },
                     ] as const).map((p) => {
                       const isActive = partner === p.key;
+                      const isHovered = hoveredPartner === p.key;
                       return (
                         <button
                           key={p.key}
                           type="button"
                           onClick={() => setPartner(p.key)}
+                          onMouseEnter={() => setHoveredPartner(p.key)}
+                          onMouseLeave={() => setHoveredPartner((v) => (v === p.key ? null : v))}
                           className={[
                             "relative h-16 rounded-2xl border bg-white dark:bg-background/40 flex items-center justify-center transition-all",
                             isActive
-                              ? "border-primary ring-4 ring-primary/30 bg-primary/5 dark:bg-primary/10"
-                              : "border-slate-200 dark:border-border hover:border-primary/40",
+                              ? "ring-4"
+                              : "border-slate-200 dark:border-border",
                           ].join(" ")}
+                          style={
+                            isActive
+                              ? {
+                                  borderColor: accent,
+                                  backgroundColor: accentBg,
+                                  boxShadow: `0 0 0 4px ${accentRing}`,
+                                }
+                              : isHovered
+                                ? {
+                                    borderColor: accent,
+                                    backgroundColor: accentBg,
+                                  }
+                              : undefined
+                          }
                           aria-pressed={isActive}
                           aria-label={p.label}
                           title={p.label}
                         >
                           {isActive ? (
-                            <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
+                            <span
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full text-primary-foreground flex items-center justify-center shadow-lg"
+                              style={{ backgroundColor: accent, boxShadow: `0 10px 15px -3px ${accentRing}` }}
+                            >
                               <Check className="h-4 w-4" />
                             </span>
                           ) : null}
@@ -142,7 +165,7 @@ export function PayPage({
                       value={amountInput}
                       onChange={(e) => setAmountInput(e.target.value)}
                       placeholder="Ex: 10000"
-                      className="h-10 rounded-lg"
+                      className="h-10 rounded-lg focus-visible:ring-[var(--pay-accent)] focus-visible:border-[var(--pay-accent)]"
                     />
                   </div>
                 ) : null}
@@ -157,7 +180,7 @@ export function PayPage({
                         id="pay-name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="h-10 rounded-lg"
+                        className="h-10 rounded-lg focus-visible:ring-[var(--pay-accent)] focus-visible:border-[var(--pay-accent)]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -169,7 +192,7 @@ export function PayPage({
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="h-10 rounded-lg"
+                        className="h-10 rounded-lg focus-visible:ring-[var(--pay-accent)] focus-visible:border-[var(--pay-accent)]"
                       />
                     </div>
                   </div>
@@ -186,7 +209,7 @@ export function PayPage({
                       placeholder="Ex: 6XXXXXXXX"
                       value={momoPhone}
                       onChange={(e) => setMomoPhone(e.target.value)}
-                      className="h-10 rounded-lg"
+                      className="h-10 rounded-lg focus-visible:ring-[var(--pay-accent)] focus-visible:border-[var(--pay-accent)]"
                     />
                   </div>
                 </div>

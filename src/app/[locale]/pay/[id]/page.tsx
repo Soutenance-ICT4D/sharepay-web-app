@@ -1,65 +1,81 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 
+import { ApiError, apiRequest } from "@/lib/api-client";
 import { PayPage, type PaymentPageData } from "../_components/pay-page";
 
-type StoredPaymentLinkRow = {
-  id: string;
-  title: string;
+type PublicPaymentLinkDto = {
+  id?: string;
+  title?: string;
   description?: string;
-  amountType?: "fixed" | "free";
-  amountValue?: number;
-  currency?: string;
-  logoUrl?: string;
-  themeColor?: string;
-  redirectUrl?: string;
-  collectCustomerInfo?: boolean;
+  amountType?: "fixed" | "free" | "FIXED" | "FREE";
+  amountValue?: number | null;
+  currency?: string | null;
+  logoUrl?: string | null;
+  themeColor?: string | null;
+  redirectUrl?: string | null;
+  collectCustomerInfo?: boolean | null;
 };
-
-const STORAGE_KEY = "sharepay.paymentLinks";
-
-function readStoredLinks(): StoredPaymentLinkRow[] {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as StoredPaymentLinkRow[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 export default function PayByIdPage({ params }: { params: { id: string } }) {
   const [data, setData] = useState<PaymentPageData | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const id = params.id;
+  const { id } = use(params as unknown as Promise<{ id: string }>);
 
   useEffect(() => {
-    const links = readStoredLinks();
-    const match = links.find((row) => row.id === id);
+    let cancelled = false;
 
-    if (!match) {
-      setNotFound(true);
-      setData(null);
-      return;
-    }
+    (async () => {
+      try {
+        const res = await apiRequest<PublicPaymentLinkDto>(
+          `/payment-links/public/${encodeURIComponent(id)}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        );
 
-    setNotFound(false);
-    setData({
-      id: match.id,
-      title: match.title,
-      description: match.description,
-      amountType: match.amountType === "free" ? "free" : "fixed",
-      amountValue: match.amountValue,
-      currency: match.currency || "XAF",
-      logoUrl: match.logoUrl,
-      themeColor: match.themeColor || "#098865",
-      redirectUrl: match.redirectUrl,
-      collectCustomerInfo: match.collectCustomerInfo ?? true,
-    });
+        const dto = res.data;
+        const normalizedAmountType =
+          dto.amountType === "FREE" || dto.amountType === "free" ? "free" : "fixed";
+
+        const mapped: PaymentPageData = {
+          id,
+          title: dto.title || "Paiement",
+          description: dto.description || undefined,
+          amountType: normalizedAmountType,
+          amountValue: dto.amountValue ?? undefined,
+          currency: dto.currency || "XAF",
+          logoUrl: dto.logoUrl || undefined,
+          themeColor: dto.themeColor || "#098865",
+          redirectUrl: dto.redirectUrl || undefined,
+          collectCustomerInfo: dto.collectCustomerInfo ?? true,
+        };
+
+        if (cancelled) return;
+        setNotFound(false);
+        setData(mapped);
+      } catch (err) {
+        if (cancelled) return;
+
+        if (err instanceof ApiError && err.status === 404) {
+          setNotFound(true);
+          setData(null);
+          return;
+        }
+
+        setNotFound(true);
+        setData(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const fallback = useMemo<PaymentPageData>(() => {
