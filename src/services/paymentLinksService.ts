@@ -94,4 +94,23 @@ export const paymentLinksService = {
       headers: authHeaders(),
     });
   },
+
+  async getPublic(token: string) {
+    // Public endpoint - no auth headers needed
+    return apiRequest<PaymentLink>(`${PAYMENT_LINKS_BASE}/public/${encodeURIComponent(token)}`, {
+      method: "GET",
+    });
+  },
+
+  async payPublic(token: string, data: Record<string, unknown>) {
+    // Public endpoint - no auth headers needed
+    return apiRequest<{
+      success: boolean;
+      transactionId?: string;
+      redirectUrl?: string;
+    }>(`${PAYMENT_LINKS_BASE}/public/${encodeURIComponent(token)}/pay`, {
+      method: "POST",
+      body: data,
+    });
+  },
 };

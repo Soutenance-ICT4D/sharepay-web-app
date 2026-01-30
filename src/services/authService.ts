@@ -10,18 +10,31 @@ type TokensResponse = {
 
 type EmptyData = Record<string, never>;
 
-const AUTH_BASE = "/merchants/auth";
+const AUTH_BASE = "/auth";
 
 export const authService = {
   async register(input: {
     fullName: string;
     email: string;
     password: string;
+    role: "MERCHANT" | "USER";
     phone?: string;
   }) {
-    return apiRequest<EmptyData>(`${AUTH_BASE}/register`, {
+    // Le backend attend "fullName" mais notre formulaire a "name". 
+    // Le mapping est fait à l'appel de la fonction.
+    return apiRequest<{
+      id: number;
+      fullName: string;
+      email: string;
+      phone: string;
+      role: string;
+      verified: boolean;
+    }>(`${AUTH_BASE}/register`, {
       method: "POST",
-      body: input,
+      body: {
+        ...input,
+        // Assurer que phone est bien formaté ou envoyé (string ou null/undefined selon backend)
+      },
     });
   },
 
@@ -38,7 +51,7 @@ export const authService = {
   },
 
   async verifyEmail(input: { email: string; otpCode: string }) {
-    return apiRequest<EmptyData>(`${AUTH_BASE}/verify-email`, {
+    return apiRequest<EmptyData>(`${AUTH_BASE}/verify-otp`, {
       method: "POST",
       body: input,
     });
@@ -49,6 +62,9 @@ export const authService = {
       method: "POST",
       body: input,
     });
+
+    // DEBUG: Log received tokens
+    console.log("[AuthService] Login Response:", res.data);
 
     tokenStorage.set(res.data as AuthTokens, { persist: options?.persist ?? false });
     return res;
@@ -70,7 +86,7 @@ export const authService = {
       throw new Error("Missing refresh token");
     }
 
-    const res = await apiRequest<TokensResponse>(`${AUTH_BASE}/refresh`, {
+    const res = await apiRequest<TokensResponse>(`${AUTH_BASE}/refresh-token`, {
       method: "POST",
       body: { refreshToken: tokens.refreshToken },
     });

@@ -7,11 +7,11 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
     output: 'standalone',
     async rewrites() {
-        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'https://72c329e07eaf.ngrok-free.app';
+        const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || 'http://localhost:8080/api/v1';
         return [
             {
-                source: '/merchants/auth/:path*',
-                destination: `${baseUrl}/merchants/auth/:path*`,
+                source: '/auth/:path*',
+                destination: `${baseUrl}/auth/:path*`,
             },
             {
                 source: '/merchants/apps/:path*',

@@ -109,4 +109,18 @@ export const developerAppsService = {
       headers: authHeaders(),
     });
   },
+
+  async createApiKey(appId: string) {
+    return apiRequest<{ publicKey: string; secretKey: string }>(`${APPS_BASE}/${encodeURIComponent(appId)}/api-keys`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+  },
+
+  async rotateApiKey(appId: string) {
+    return apiRequest<{ publicKey: string; secretKey: string }>(`${APPS_BASE}/${encodeURIComponent(appId)}/api-keys/rotate`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+  },
 };

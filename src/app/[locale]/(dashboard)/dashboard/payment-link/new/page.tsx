@@ -4,13 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
 
-import { 
-  ArrowLeft, 
-  Image as ImageIcon, 
-  Link2Off, 
-  Palette, 
-  Settings2, 
-  CreditCard, 
+import {
+  ArrowLeft,
+  Image as ImageIcon,
+  Link2Off,
+  Palette,
+  Settings2,
+  CreditCard,
   Smartphone,
   Eye
 } from "lucide-react";
@@ -92,7 +92,7 @@ function PaymentPreview({ data }: { data: Partial<StoredPaymentLinkRow> }) {
       <div className="relative mx-auto border-[8px] border-slate-900 rounded-[2.5rem] h-[600px] w-[300px] shadow-2xl bg-white overflow-hidden">
         {/* Notch du téléphone */}
         <div className="absolute top-0 inset-x-0 h-6 bg-slate-900 rounded-b-xl w-32 mx-auto z-10"></div>
-        
+
         {/* Contenu du lien de paiement */}
         <div className="h-full overflow-y-auto pt-12 pb-8 px-6 flex flex-col items-center">
           {data.logoUrl ? (
@@ -102,7 +102,7 @@ function PaymentPreview({ data }: { data: Partial<StoredPaymentLinkRow> }) {
               <ImageIcon className="text-slate-300" />
             </div>
           )}
-          
+
           <h4 className="text-lg font-bold text-center leading-tight mb-2">
             {data.title || "Titre de votre produit"}
           </h4>
@@ -113,21 +113,21 @@ function PaymentPreview({ data }: { data: Partial<StoredPaymentLinkRow> }) {
           <div className="w-full bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
             <span className="text-[10px] text-slate-400 font-bold uppercase">Montant à payer</span>
             <div className="text-2xl font-black" style={{ color: data.themeColor }}>
-              {data.amountType === "free" ? "--" : data.amountValue?.toLocaleString()} {data.currency}
+              {data.amountType === "free" ? "--" : data.amountValue?.toLocaleString("fr-FR")} {data.currency}
             </div>
           </div>
 
           <div className="w-full space-y-3 mt-auto">
-             <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
-             <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
-             <Button 
-                className="w-full h-12 rounded-xl font-bold shadow-lg transition-all"
-                style={{ backgroundColor: data.themeColor, color: '#fff' }}
-             >
-               Payer maintenant
-             </Button>
+            <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
+            <div className="h-10 w-full bg-slate-100 rounded-lg animate-pulse" />
+            <Button
+              className="w-full h-12 rounded-xl font-bold shadow-lg transition-all"
+              style={{ backgroundColor: data.themeColor, color: '#fff' }}
+            >
+              Payer maintenant
+            </Button>
           </div>
-          
+
           <p className="mt-6 text-[10px] text-slate-400 flex items-center gap-1">
             <Smartphone className="w-3 h-3" /> Sécurisé par SharePay
           </p>
@@ -306,7 +306,7 @@ export default function NewPaymentLinkPage() {
         {/* Colonne Formulaire */}
         <div className="lg:col-span-7 space-y-8">
           <form onSubmit={handleSubmit} className="space-y-8">
-            
+
             {/* Section 1: Produit */}
             <div className="bg-card border rounded-2xl p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -318,54 +318,54 @@ export default function NewPaymentLinkPage() {
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label>Application cible</Label>
-                        <select 
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                            value={selectedAppId}
-                            onChange={(e) => setSelectedAppId(e.target.value)}
-                            disabled={appsLoading}
-                        >
-                            {appsLoading ? (
-                              <option value="">Chargement...</option>
-                            ) : (
-                              <>
-                                <option value="">Aucune</option>
-                                {apps.map((app) => (
-                                  <option key={app.id} value={app.id}>
-                                    {app.name}
-                                  </option>
-                                ))}
-                              </>
-                            )}
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Statut initial</Label>
-                        <select 
-                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                             value={status}
-                             onChange={(e) => setStatus(e.target.value as any)}
-                        >
-                            <option value="ACTIVE">Actif</option>
-                            <option value="EXPIRED">Expiré</option>
-                        </select>
-                    </div>
+                  <div className="space-y-2">
+                    <Label>Application cible</Label>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      value={selectedAppId}
+                      onChange={(e) => setSelectedAppId(e.target.value)}
+                      disabled={appsLoading}
+                    >
+                      {appsLoading ? (
+                        <option value="">Chargement...</option>
+                      ) : (
+                        <>
+                          <option value="">Aucune</option>
+                          {apps.map((app) => (
+                            <option key={app.id} value={app.id}>
+                              {app.name}
+                            </option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Statut initial</Label>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value as any)}
+                    >
+                      <option value="ACTIVE">Actif</option>
+                      <option value="EXPIRED">Expiré</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="title">Titre du paiement</Label>
-                  <Input 
-                    id="title" 
-                    placeholder="Ex: Abonnement Salle de sport" 
-                    value={title} 
+                  <Input
+                    id="title"
+                    placeholder="Ex: Abonnement Salle de sport"
+                    value={title}
                     onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="desc">Description</Label>
-                  <textarea 
+                  <textarea
                     id="desc"
                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     placeholder="Détails additionnels pour vos clients..."
@@ -388,7 +388,7 @@ export default function NewPaymentLinkPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Type de montant</Label>
-                  <select 
+                  <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
                     value={amountType}
                     onChange={(e) => setAmountType(e.target.value as any)}
@@ -399,10 +399,10 @@ export default function NewPaymentLinkPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Devise</Label>
-                  <select 
-                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
-                     value={currency}
-                     onChange={(e) => setCurrency(e.target.value)}
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
                   >
                     <option value="XAF">XAF</option>
                     <option value="EUR">EUR</option>
@@ -414,9 +414,9 @@ export default function NewPaymentLinkPage() {
               {amountType === "fixed" && (
                 <div className="mt-4 space-y-2">
                   <Label>Montant</Label>
-                  <Input 
-                    type="number" 
-                    value={amount} 
+                  <Input
+                    type="number"
+                    value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     className="text-lg font-bold"
                   />
@@ -426,38 +426,38 @@ export default function NewPaymentLinkPage() {
 
             {/* Section 3: Branding */}
             <div className="bg-card border rounded-2xl p-6 shadow-sm">
-               <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
                   <Palette className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-lg">Personnalisation</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <Label>Logo du marchand</Label>
                   <div className="flex flex-col gap-2">
-                    <select 
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
-                        value={logoMode}
-                        onChange={(e) => setLogoMode(e.target.value as any)}
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
+                      value={logoMode}
+                      onChange={(e) => setLogoMode(e.target.value as any)}
                     >
-                        <option value="none">Pas de logo</option>
-                        <option value="url">Lien URL</option>
-                        <option value="upload">Fichier local</option>
+                      <option value="none">Pas de logo</option>
+                      <option value="url">Lien URL</option>
+                      <option value="upload">Fichier local</option>
                     </select>
                     {logoMode === 'url' && (
-                        <Input placeholder="https://..." value={logoUrlInput} onChange={(e) => setLogoUrlInput(e.target.value)} />
+                      <Input placeholder="https://..." value={logoUrlInput} onChange={(e) => setLogoUrlInput(e.target.value)} />
                     )}
                     {logoMode === 'upload' && (
-                        <Input type="file" accept="image/*" onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                                const reader = new FileReader();
-                                reader.onload = () => setLogoDataUrl(reader.result as string);
-                                reader.readAsDataURL(file);
-                            }
-                        }} />
+                      <Input type="file" accept="image/*" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => setLogoDataUrl(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }} />
                     )}
                   </div>
                 </div>
@@ -465,9 +465,9 @@ export default function NewPaymentLinkPage() {
                 <div className="space-y-4">
                   <Label>Couleur d'accentuation</Label>
                   <div className="flex items-center gap-3">
-                    <input 
-                      type="color" 
-                      value={themeColor} 
+                    <input
+                      type="color"
+                      value={themeColor}
                       onChange={(e) => setThemeColor(e.target.value)}
                       className="h-10 w-12 rounded cursor-pointer border-none p-0"
                     />
@@ -479,7 +479,7 @@ export default function NewPaymentLinkPage() {
 
             {/* Section 4: Options Avancées */}
             <div className="bg-card border rounded-2xl p-6 shadow-sm">
-               <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-slate-50 text-slate-600 rounded-lg">
                   <Settings2 className="w-5 h-5" />
                 </div>
@@ -498,12 +498,12 @@ export default function NewPaymentLinkPage() {
               </div>
 
               <div className="flex items-center space-x-2 mt-6 p-4 bg-muted/30 rounded-xl">
-                 <input 
-                    type="checkbox" 
-                    id="collect" 
-                    checked={collectCustomerInfo} 
-                    onChange={(e) => setCollectCustomerInfo(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                <input
+                  type="checkbox"
+                  id="collect"
+                  checked={collectCustomerInfo}
+                  onChange={(e) => setCollectCustomerInfo(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <Label htmlFor="collect" className="cursor-pointer">Collecter le nom et l'email du client lors du paiement</Label>
               </div>
