@@ -30,7 +30,7 @@ export type CreateDeveloperAppInput = {
 
 type EmptyData = Record<string, never>;
 
-const APPS_BASE = "/merchants/apps";
+const APPS_BASE = "/merchant/apps";
 
 function toApiEnvironment(value: UiDeveloperAppEnvironment): DeveloperAppEnvironment {
   return value === "production" ? "PRODUCTION" : "SANDBOX";

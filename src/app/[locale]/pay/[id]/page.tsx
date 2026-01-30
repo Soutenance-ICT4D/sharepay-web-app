@@ -9,7 +9,7 @@ type PublicPaymentLinkDto = {
   id?: string;
   title?: string;
   description?: string;
-  amountType?: "fixed" | "free" | "FIXED" | "FREE";
+  amountType?: "FIXED" | "FLEXIBLE";
   amountValue?: number | null;
   currency?: string | null;
   logoUrl?: string | null;
@@ -41,7 +41,7 @@ export default function PayByIdPage({ params }: { params: { id: string } }) {
 
         const dto = res.data;
         const normalizedAmountType =
-          dto.amountType === "FREE" || dto.amountType === "free" ? "free" : "fixed";
+          dto.amountType === "FLEXIBLE" ? "free" : "fixed";
 
         const mapped: PaymentPageData = {
           id,

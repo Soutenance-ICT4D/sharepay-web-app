@@ -215,11 +215,13 @@ export default function NewPaymentLinkPage() {
       return;
     }
 
-    const appId = selectedAppId || defaultAppId;
-    if (!appId) {
-      setError("Veuillez sélectionner une application (ou configurer une application par défaut).");
-      return;
-    }
+    // const appId = selectedAppId || defaultAppId;
+    // if (!appId) {
+    //   setError("Veuillez sélectionner une application (ou configurer une application par défaut).");
+    //   return;
+    // }
+    // On permet l'envoi sans appId (backend gère le défaut)
+    const appId = selectedAppId || defaultAppId || null;
 
     try {
       const amountValue = amountType === "fixed" ? Number(amount) : undefined;

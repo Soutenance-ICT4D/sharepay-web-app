@@ -41,7 +41,7 @@ export type CreatePaymentLinkInput = {
 
 type EmptyData = Record<string, never>;
 
-const PAYMENT_LINKS_BASE = "/merchants/payment-links";
+const PAYMENT_LINKS_BASE = "/payment-links";
 
 function authHeaders() {
   const headers: Record<string, string> = {};
@@ -70,13 +70,28 @@ export const paymentLinksService = {
   },
 
   async create(input: CreatePaymentLinkInput) {
-    if (!input.appId) {
-      throw new Error("appId is required to create a payment link");
-    }
+    // appId is optional, backend handles default if missing
+
+    // transform input to backend expected payload
+    const payload = {
+      appId: input.appId,
+      status: input.status || "ACTIVE",
+      title: input.title,
+      description: input.description,
+      amountType: input.amountType === "free" ? "FLEXIBLE" : "FIXED",
+      amount: input.amountValue || 0,
+      currency: input.currency || "XAF",
+      merchantLogo: input.logoUrl,
+      accentColor: input.themeColor,
+      successUrl: input.redirectUrl,
+      expiryDate: input.expiresAt,
+      collectCustomerInfo: input.collectCustomerInfo ?? true,
+    };
+
     return apiRequest<PaymentLink>(`${PAYMENT_LINKS_BASE}`, {
       method: "POST",
       headers: authHeaders(),
-      body: input,
+      body: payload,
     });
   },
 

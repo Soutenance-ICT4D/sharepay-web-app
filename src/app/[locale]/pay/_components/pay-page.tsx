@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Image as ImageIcon, Smartphone } from "lucide-react";
+import { Check, Image as ImageIcon, Smartphone, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { paymentLinksService } from "@/services/paymentLinksService";
 import { PayAppBar } from "./pay-app-bar";
 
 export type PaymentPageData = {
@@ -21,12 +24,6 @@ export type PaymentPageData = {
   collectCustomerInfo?: boolean;
 };
 
-function formatAmount(data: PaymentPageData) {
-  if (data.amountType === "free") return "Montant libre";
-  const amount = typeof data.amountValue === "number" ? data.amountValue : 0;
-  return `${new Intl.NumberFormat("fr-FR").format(amount)} ${data.currency}`;
-}
-
 export function PayPage({
   data,
   mode,
@@ -34,6 +31,7 @@ export function PayPage({
   data: PaymentPageData;
   mode: "default" | "id";
 }) {
+  const router = useRouter();
   const accent = data.themeColor || "#098865";
   const accentRing = `${accent}4D`;
   const accentBg = `${accent}0D`;
@@ -46,7 +44,11 @@ export function PayPage({
 
   const [momoPhone, setMomoPhone] = useState("");
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const canPay = useMemo(() => {
+    if (isProcessing) return false;
+
     if (data.collectCustomerInfo) {
       if (!name.trim()) return false;
       if (!email.trim()) return false;
@@ -59,7 +61,50 @@ export function PayPage({
 
     if (!momoPhone.trim()) return false;
     return true;
-  }, [amountInput, data.amountType, data.collectCustomerInfo, email, momoPhone, name]);
+  }, [amountInput, data.amountType, data.collectCustomerInfo, email, momoPhone, name, isProcessing]);
+
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    try {
+      // Determine amount
+      let finalAmount = data.amountValue || 0;
+      if (data.amountType === "free") {
+        finalAmount = Number(amountInput);
+      }
+
+      const payload = {
+        amount: finalAmount,
+        currency: data.currency,
+        provider: partner === "orange" ? "ORANGE_MONEY" : "MTN_MOMO",
+        phoneNumber: momoPhone,
+        customerName: name,
+        customerEmail: email,
+      };
+
+      const res = await paymentLinksService.payPublic(data.id, payload);
+
+      if (res.data?.success) {
+        toast.success("Paiement initié avec succès !");
+
+        if (res.data.redirectUrl) {
+          window.location.href = res.data.redirectUrl;
+        } else if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        } else {
+          // Show success state locally if no redirect
+          toast.success("Merci pour votre paiement.");
+          // Optional: clear form or show success UI
+        }
+      } else {
+        toast.error("Le paiement a échoué ou est en attente.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Une erreur est survenue lors du paiement.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ "--pay-accent": accent } as React.CSSProperties}>
@@ -123,16 +168,16 @@ export function PayPage({
                           style={
                             isActive
                               ? {
-                                  borderColor: accent,
-                                  backgroundColor: accentBg,
-                                  boxShadow: `0 0 0 4px ${accentRing}`,
-                                }
+                                borderColor: accent,
+                                backgroundColor: accentBg,
+                                boxShadow: `0 0 0 4px ${accentRing}`,
+                              }
                               : isHovered
                                 ? {
-                                    borderColor: accent,
-                                    backgroundColor: accentBg,
-                                  }
-                              : undefined
+                                  borderColor: accent,
+                                  backgroundColor: accentBg,
+                                }
+                                : undefined
                           }
                           aria-pressed={isActive}
                           aria-label={p.label}
@@ -218,17 +263,13 @@ export function PayPage({
                   className="w-full h-12 rounded-xl font-bold shadow-lg transition-all"
                   style={{ backgroundColor: accent, color: "#fff" }}
                   disabled={!canPay}
-                  onClick={() => {
-                    window.alert(
-                      `Paiement Mobile Money (${partner}) simulé (à implémenter)`
-                    );
-
-                    if (data.redirectUrl) {
-                      window.location.href = data.redirectUrl;
-                    }
-                  }}
+                  onClick={handlePayment}
                 >
-                  Payer maintenant
+                  {isProcessing ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Payer maintenant"
+                  )}
                 </Button>
               </div>
 
